@@ -165,6 +165,7 @@
     <ClInclude Include="LZMA\CPP\Common\MyBuffer2.h" />
     <ClInclude Include="LZMA\CPP\Common\MyCom.h" />
     <ClInclude Include="LZMA\CPP\Common\MyException.h" />
+    <ClInclude Include="LZMA\CPP\Common\MyGuidDef.h" />
     <ClInclude Include="LZMA\CPP\Common\MyInitGuid.h" />
     <ClInclude Include="LZMA\CPP\Common\MyLinux.h" />
     <ClInclude Include="LZMA\CPP\Common\MyString.h" />

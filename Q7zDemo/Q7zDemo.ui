@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>852</width>
-    <height>514</height>
+    <height>534</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,7 +25,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
-     <number>10</number>
+     <number>15</number>
     </property>
     <item>
      <widget class="QLabel" name="label">
@@ -44,6 +44,12 @@
       </item>
       <item>
        <widget class="QPushButton" name="selectArchivePathButton">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>...</string>
         </property>
@@ -86,7 +92,7 @@
      </layout>
     </item>
     <item>
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QTabWidget" name="listTab">
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -114,6 +120,12 @@
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
              <widget class="QPushButton" name="selectFilesButton">
+              <property name="maximumSize">
+               <size>
+                <width>50</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="text">
                <string>...</string>
               </property>
@@ -150,6 +162,12 @@
           </item>
           <item>
            <widget class="QPushButton" name="selectExcludeBasePathButton">
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
              <string>...</string>
             </property>
@@ -177,6 +195,41 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>List</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Archive files list</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QListWidget" name="archiveFilesList"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="listArchiveButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>15</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>List</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="extractTab">
        <attribute name="title">
         <string>Extract</string>
@@ -196,6 +249,12 @@
           </item>
           <item>
            <widget class="QPushButton" name="selectOutputPathButton">
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
              <string>...</string>
             </property>

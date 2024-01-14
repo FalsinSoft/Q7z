@@ -21,7 +21,7 @@ public:
     struct FileInfo
     {
         QString name;
-        uint size;
+        quint64 size;
     };
     using FileInfoList = QList<FileInfo>;
 
@@ -29,6 +29,10 @@ public:
     bool list(const QString &archiveName, FileInfoList *fileList);
 
     void setPassword(const QString &password);
+
+protected:
+    virtual bool extractFile(const QString &name, bool *saveToDisk);
+    virtual void fileContent(const QString &name, const QByteArray &data);
 
 private:
     QString m_password;

@@ -36,13 +36,16 @@ public:
         PPMd
     };
 
-    bool create(const QString &archiveName, const QList<QString> &filesList, const QString &excludeBasePath = QString());
+    bool create(const QString &archiveName, const QStringList &files, const QString &excludeBasePath = QString());
 
     void setPassword(const QString &password);
     void setEncryptHeaders(bool encryptHeaders);
     void setCompressionLevel(CompressionLevel compressionLevel);
     void setCompressionMode(CompressionMode compressionMode);
     void setDictionarySize(uint mbDictionarySize);
+
+protected:
+    virtual bool getFileContent(const QString &name, QByteArray *data);
 
 private:
     QString m_password;

@@ -1,8 +1,6 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include "Q7zDemo.h"
-#include "Q7zEncode.h"
-#include "Q7zDecode.h"
 
 Q7zDemo::Q7zDemo(QWidget *parent) : QMainWindow(parent)
 {
@@ -61,8 +59,9 @@ void Q7zDemo::on_createArchiveButton_clicked()
     const QString archivePath = ui.archivePath->text();
     const QString excludeBasePath = ui.excludeBasePath->text();
     QStringList files;
-    Q7zEncode encode;
+    Encode encode;
 
+    files << "Q7zDemo_readme.txt";
     for(int i = 0; i < ui.filesList->count(); i++) files << ui.filesList->item(i)->text();
 
     if(archivePath.isEmpty() || files.count() == 0)
@@ -88,7 +87,7 @@ void Q7zDemo::on_createArchiveButton_clicked()
         encode.setPassword(password);
         encode.setEncryptHeaders(true);
     }
-
+    
     if(encode.create(archivePath, files, excludeBasePath))
     {
         QMessageBox::information(this,
@@ -122,7 +121,7 @@ void Q7zDemo::on_extractArchiveButton_clicked()
 {
     const QString archivePath = ui.archivePath->text();
     const QString outputPath = ui.outputPath->text();
-    Q7zDecode decode;
+    Decode decode;
 
     if(archivePath.isEmpty() || outputPath.isEmpty())
     {
@@ -160,5 +159,72 @@ void Q7zDemo::on_extractArchiveButton_clicked()
                               tr("Error"),
                               tr("Archive not extracted!"),
                               QMessageBox::Ok);
+    }
+}
+
+void Q7zDemo::on_listArchiveButton_clicked()
+{
+    const QString archivePath = ui.archivePath->text();
+    Q7zDecode::FileInfoList fileList;
+    Decode decode;
+
+    if(archivePath.isEmpty())
+    {
+        QMessageBox::warning(this,
+                             tr("Warning"),
+                             tr("Please, insert archive name"),
+                             QMessageBox::Ok);
+        return;
+    }
+    if(ui.setPassword->isChecked())
+    {
+        const QString password = ui.password->text();
+
+        if(password.isEmpty())
+        {
+            QMessageBox::warning(this,
+                                 tr("Warning"),
+                                 tr("Please, write a valid password"),
+                                 QMessageBox::Ok);
+            return;
+        }
+        decode.setPassword(password);
+    }
+
+    if(decode.list(archivePath, &fileList))
+    {
+        ui.archiveFilesList->clear();
+        for(const auto &file : fileList) ui.archiveFilesList->addItem(QString("%1 (size: %2)").arg(file.name).arg(file.size));
+    }
+    else
+    {
+        QMessageBox::critical(this,
+                              tr("Error"),
+                              tr("Archive not listed!"),
+                              QMessageBox::Ok);
+    }
+}
+
+bool Q7zDemo::Encode::getFileContent(const QString &name, QByteArray *data)
+{
+    if(name == "Q7zDemo_readme.txt")
+    {
+        data->append("This is an example of virtual file created by code not existing on disk!!!");
+        return true;
+    }
+    return false;
+}
+
+bool Q7zDemo::Decode::extractFile(const QString &name, bool *saveToDisk)
+{
+    if(name == "Q7zDemo_readme.txt") *saveToDisk = false;
+    return true;
+}
+
+void Q7zDemo::Decode::fileContent(const QString &name, const QByteArray &data)
+{
+    if(name == "Q7zDemo_readme.txt")
+    {
+        //...
     }
 }

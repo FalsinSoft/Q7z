@@ -819,5 +819,8 @@
     <ClInclude Include="Callbacks\ArchiveUpdateCallback.h">
       <Filter>Header Files\Callbacks</Filter>
     </ClInclude>
+    <ClInclude Include="LZMA\CPP\Common\MyGuidDef.h">
+      <Filter>Header Files\LZMA\CPP\Common</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

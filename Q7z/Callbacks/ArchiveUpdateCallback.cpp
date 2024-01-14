@@ -1,9 +1,11 @@
+#include <QFileInfo>
 #include "../LZMA/CPP/Common/IntToString.h"
 #include "ArchiveUpdateCallback.h"
 
 using namespace NWindows;
+using namespace std;
 
-ArchiveUpdateCallback::ArchiveUpdateCallback()
+ArchiveUpdateCallback::ArchiveUpdateCallback(const GetFileContentFuncType &getFileContentFunc) : m_getFileContentFunc(getFileContentFunc)
 {
 }
 
@@ -27,65 +29,94 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetUpdateItemInfo(UInt32 index, Int32 *newDa
 
 Z7_COM7F_IMF(ArchiveUpdateCallback::GetProperty(UInt32 index, PROPID propID, PROPVARIANT *value))
 {
-    NCOM::CPropVariant prop;
+    const auto &file = m_fileDataList.at(index);
+    NCOM::CPropVariant property = false;
 
-    if(propID == kpidIsAnti)
+    if(file.requestFileData)
     {
-        prop = false;
+        if(m_getFileContentFunc(file.name, const_cast<QByteArray*>(&file.data)))
+        {
+            if(file.data.isEmpty()) return E_ABORT;
+        }
+        *const_cast<bool*>(&file.requestFileData) = false;
     }
-    else
-    {
-        const FileInfo &fileInfo = m_fileList.at(index);
 
+    if(file.data.isEmpty())
+    {
+        NFile::NFind::CFileInfo fileInfo;
+
+        fileInfo.Find(FString(file.name.toStdString().c_str()));
         switch(propID)
         {
-            case kpidPath:  
-                prop = fs2us(FString(excludeBasePath(fileInfo.filePath).toStdString().c_str()));
+            case kpidPath:
+                property = fs2us(FString(excludeBasePath(file.name).toStdString().c_str()));
                 break;
             case kpidIsDir:
-                prop = fileInfo.IsDir();
+                property = fileInfo.IsDir();
                 break;
             case kpidSize:
-                prop = fileInfo.Size;
-                break;
-            case kpidCTime:
-                PropVariant_SetFrom_FiTime(prop, fileInfo.CTime);
-                break;
-            case kpidATime:
-                PropVariant_SetFrom_FiTime(prop, fileInfo.ATime);
+                property = fileInfo.Size;
                 break;
             case kpidMTime:
-                PropVariant_SetFrom_FiTime(prop, fileInfo.MTime);
+                PropVariant_SetFrom_FiTime(property, fileInfo.MTime);
                 break;
             case kpidAttrib:
-                prop = static_cast<UInt32>(fileInfo.GetWinAttrib());
+                property = static_cast<UInt32>(fileInfo.GetWinAttrib());
                 break;
             case kpidPosixAttrib:
-                prop = static_cast<UInt32>(fileInfo.GetPosixAttrib());
+                property = static_cast<UInt32>(fileInfo.GetPosixAttrib());
                 break;
         }
     }
-
-    prop.Detach(value);
+    else
+    {
+        switch(propID)
+        {
+            case kpidPath:
+                property = fs2us(FString(excludeBasePath(file.name).toStdString().c_str()));
+                break;
+            case kpidSize:
+                property = static_cast<UInt64>(file.data.size());
+                break;
+            case kpidMTime:
+                PropVariant_SetFrom_FiTime(property, CFiTime());
+                break;
+            case kpidAttrib:
+            case kpidPosixAttrib:
+                property = static_cast<UInt32>(NULL);
+                break;
+        }
+    }
+    property.Detach(value);
+    
     return S_OK;
 }
 
 Z7_COM7F_IMF(ArchiveUpdateCallback::GetStream(UInt32 index, ISequentialInStream **inStream))
 {
-    const FileInfo &fileInfo = m_fileList.at(index);
+    const auto &file = m_fileDataList.at(index);
+    const bool isDir = file.data.isEmpty() ? QFileInfo(file.name).isDir() : false;
 
-    if(fileInfo.IsDir() == false)
+    if(isDir == false)
     {
-        CInFileStream *inStreamSpec = new CInFileStream;
-        CMyComPtr<ISequentialInStream> inStreamLoc(inStreamSpec);
-
-        if(!inStreamSpec->Open(FString(fileInfo.filePath.toStdString().c_str())))
+        if(file.data.isEmpty())
         {
-            return S_FALSE;
+            CInFileStream *inStreamSpec = new CInFileStream;
+            CMyComPtr<ISequentialInStream> inStreamLoc(inStreamSpec);
+            if(!inStreamSpec->Open(FString(file.name.toStdString().c_str())))
+            {
+                return S_FALSE;
+            }
+            *inStream = inStreamLoc.Detach();
         }
-        *inStream = inStreamLoc.Detach();
+        else
+        {
+            CInDataStream *inStreamSpec = new CInDataStream(&file.data);
+            CMyComPtr<ISequentialInStream> inStreamLoc(inStreamSpec);
+            *inStream = inStreamLoc.Detach();
+        }
     }
-
+    
     return S_OK;
 }
 
@@ -110,14 +141,55 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::CryptoGetTextPassword2(Int32 *passwordIsDefi
     return StringToBstr(UString(m_password.toStdString().c_str()), password);
 }
 
-void ArchiveUpdateCallback::addFile(const QString &filePath, const NWindows::NFile::NFind::CFileInfo &fileInfo)
+Z7_COM7F_IMF(ArchiveUpdateCallback::CInDataStream::Read(void *data, UInt32 size, UInt32 *processedSize))
 {
-    m_fileList << FileInfo(filePath, fileInfo);
+    const char *pData = m_data->data();
+    quint32 length = size;
+
+    if((m_dataPointer + length) >= m_data->size()) length = (m_data->size() - m_dataPointer);
+    memcpy(data, &pData[m_dataPointer], length);
+    *processedSize = length;
+    m_dataPointer += length;
+
+    return S_OK;
+}
+
+Z7_COM7F_IMF(ArchiveUpdateCallback::CInDataStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64 *newPosition))
+{
+    if(offset < 0) return HRESULT_WIN32_ERROR_NEGATIVE_SEEK;
+
+    switch(seekOrigin)
+    {
+        case STREAM_SEEK_SET:
+            m_dataPointer = *newPosition = (offset < m_data->size()) ? offset : m_data->size();
+            break;
+        case STREAM_SEEK_CUR:
+            m_dataPointer = *newPosition = ((m_dataPointer + offset) < m_data->size()) ? (m_dataPointer + offset) : m_data->size();
+            break;
+        case STREAM_SEEK_END:
+            m_dataPointer = *newPosition = m_data->size();
+            break;
+        default:
+            return STG_E_INVALIDFUNCTION;
+    }
+
+    return S_OK;
+}
+
+Z7_COM7F_IMF(ArchiveUpdateCallback::CInDataStream::GetSize(UInt64 *size))
+{
+    *size = m_data->size();
+    return S_OK;
+}
+
+void ArchiveUpdateCallback::addFile(const QString &name)
+{
+    m_fileDataList << FileData(name);
 }
 
 int ArchiveUpdateCallback::filesCount() const
 {
-    return m_fileList.count();
+    return m_fileDataList.count();
 }
 
 void ArchiveUpdateCallback::setPassword(const QString &password)

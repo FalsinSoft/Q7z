@@ -15,25 +15,41 @@ class ArchiveUpdateCallback Z7_final : public IArchiveUpdateCallback2,
     Z7_IFACE_COM7_IMP(IProgress)
     Z7_IFACE_COM7_IMP(IArchiveUpdateCallback)
 
-    struct FileInfo : public NWindows::NFile::NFind::CFileInfoBase
+    Z7_class_final(CInDataStream) : public IInStream,
+                                    public IStreamGetSize,
+                                    public CMyUnknownImp
     {
-        FileInfo(const QString &filePath, const NWindows::NFile::NFind::CFileInfo &fileInfo) : CFileInfoBase(fileInfo)
-        {
-            this->filePath = filePath;
-        }
-        QString filePath;
+        Z7_COM_UNKNOWN_IMP_2(IInStream, IStreamGetSize)
+        Z7_IFACE_COM7_IMP(ISequentialInStream)
+        Z7_IFACE_COM7_IMP(IInStream)
+    public:
+        CInDataStream(const QByteArray *data) : m_data(data) {}
+        Z7_IFACE_COM7_IMP(IStreamGetSize)
+    private:
+        const QByteArray *m_data;
+        quint64 m_dataPointer = 0;
+    };
+
+    struct FileData
+    {
+        FileData(const QString &name) { this->name = name; }
+        QString name;
+        QByteArray data;
+        bool requestFileData = true;
     };
 
 public:
-    ArchiveUpdateCallback();
+    using GetFileContentFuncType = std::function<bool(const QString&, QByteArray*)>;
+    ArchiveUpdateCallback(const GetFileContentFuncType &getFileContentFunc);
 
-    void addFile(const QString &filePath, const NWindows::NFile::NFind::CFileInfo &fileInfo);
+    void addFile(const QString &name);
     int filesCount() const;
     void setPassword(const QString &password);
     void setExcludeBasePath(const QString &excludeBasePath);
 
 private:
-    QList<FileInfo> m_fileList;
+    GetFileContentFuncType m_getFileContentFunc;
+    QList<FileData> m_fileDataList;
     QString m_password;
     QString m_excludeBasePath;
 

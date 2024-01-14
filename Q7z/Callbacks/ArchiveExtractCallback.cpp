@@ -10,7 +10,10 @@ using namespace NArchive;
 using namespace NFile;
 using namespace NDir;
 
-ArchiveExtractCallback::ArchiveExtractCallback() : m_operationResult(NExtract::NOperationResult::kOK)
+ArchiveExtractCallback::ArchiveExtractCallback(const ExtractFileFuncType &extractFileFunc,
+                                               const FileContentFuncType &fileContentFunc) : m_extractFileFunc(extractFileFunc),
+                                                                                             m_fileContentFunc(fileContentFunc),
+                                                                                             m_operationResult(NExtract::NOperationResult::kOK)
 {
 }
 
@@ -26,51 +29,71 @@ Z7_COM7F_IMF(ArchiveExtractCallback::SetCompleted(const UInt64 *completeValue))
 
 Z7_COM7F_IMF(ArchiveExtractCallback::GetStream(UInt32 index, ISequentialOutStream **outStream, Int32 askExtractMode))
 {
-    UString fullPath;
+    UString fileFullPath, filePath;
+    UInt64 fileSize;
     bool isDir;
 
     *outStream = NULL;
-    m_outFileStream.Release();
+    m_outStream.Release();
+    m_fileContentData.clear();
 
     if(askExtractMode != NExtract::NAskMode::kExtract) return S_OK;
     
-    if(!getPropertyFileFullPath(index, &fullPath))
-    {
-        return E_FAIL;
-    }
-    if(!getPropertyDir(index, &isDir))
+    if(!getPropertyFilePath(index, &filePath)
+    || !getPropertyFileSize(index, &fileSize)
+    || !getPropertyDir(index, &isDir))
     {
         return E_FAIL;
     }
 
+    fileFullPath = fullPath(filePath);
     if(isDir)
     {
-        CreateComplexDir(fullPath);
+        CreateComplexDir(us2fs(fileFullPath));
     }
     else
     {
-        const int slashPos = fullPath.ReverseFind_PathSepar();
         CMyComPtr<ISequentialOutStream> outStreamLoc;
-        NFind::CFileInfo fileInfo;
 
-        if(slashPos >= 0) CreateComplexDir(us2fs(fullPath.Left(slashPos)));
-
-        if(fileInfo.Find(fullPath))
+        m_saveFileToDisk = true;
+        if(m_extractFileFunc(QString::fromStdWString(filePath.GetBuf()), &m_saveFileToDisk) == false)
         {
-            if(!DeleteFileAlways(fullPath))
+            return S_OK;
+        }
+
+        if(m_saveFileToDisk)
+        {
+            const int slashPos = fileFullPath.ReverseFind_PathSepar();
+            m_outFileStreamSpec = new COutFileStream;
+            outStreamLoc = CMyComPtr<ISequentialOutStream>(m_outFileStreamSpec);
+            NFind::CFileInfo fileInfo;
+
+            if(fileInfo.Find(us2fs(fileFullPath)))
+            {
+                if(!DeleteFileAlways(us2fs(fileFullPath)))
+                {
+                    return E_ABORT;
+                }
+            }
+            else if(slashPos >= 0)
+            {
+                CreateComplexDir(us2fs(fileFullPath.Left(slashPos)));
+            }
+
+            if(!m_outFileStreamSpec->Open(us2fs(fileFullPath), CREATE_ALWAYS))
             {
                 return E_ABORT;
             }
         }
-
-        m_outFileStreamSpec = new COutFileStream;
-        outStreamLoc = CMyComPtr<ISequentialOutStream>(m_outFileStreamSpec);
-        if(!m_outFileStreamSpec->Open(fullPath, CREATE_ALWAYS))
+        else
         {
-            return E_ABORT;
+            m_fileContentData.resize(fileSize);
+            m_fileContentData.fill(0);
+            m_outDataStreamSpec = new COutDataStream(&m_fileContentData);
+            outStreamLoc = CMyComPtr<ISequentialOutStream>(m_outDataStreamSpec);
         }
         m_outFileIndex = index;
-        m_outFileStream = outStreamLoc;
+        m_outStream = outStreamLoc;
         *outStream = outStreamLoc.Detach();
     }
 
@@ -88,36 +111,86 @@ Z7_COM7F_IMF(ArchiveExtractCallback::SetOperationResult(Int32 operationResult))
 
     if(operationResult != NExtract::NOperationResult::kOK)
     {
-        m_outFileStream.Release();
+        m_outStream.Release();
+        m_fileContentData.clear();
         return E_ABORT;
     }
-
-    if(m_outFileStream)
+    
+    if(m_outStream)
     {
-        CFiTime fileTime;
-        UInt32 attrib;
+        UString filePath;
 
-        if(getPropertyFileTime(m_outFileIndex, &fileTime))
+        getPropertyFilePath(m_outFileIndex, &filePath);
+
+        if(m_saveFileToDisk)
         {
-            m_outFileStreamSpec->SetMTime(&fileTime);
+            CFiTime fileTime;
+            UInt32 attrib;
+
+            if(getPropertyFileTime(m_outFileIndex, &fileTime))
+            {
+                m_outFileStreamSpec->SetMTime(&fileTime);
+            }
+            if(getPropertyFileAttrib(m_outFileIndex, &attrib))
+            {
+                SetFileAttrib_PosixHighDetect(us2fs(fullPath(filePath)), attrib);
+            }
+            m_outFileStreamSpec->Close();
         }
-        if(getPropertyFileAttrib(m_outFileIndex, &attrib))
+        else
         {
-            UString fullPath;
-            getPropertyFileFullPath(m_outFileIndex, &fullPath);
-            SetFileAttrib_PosixHighDetect(fullPath, attrib);
+            m_fileContentFunc(QString::fromStdWString(filePath.GetBuf()), m_fileContentData);
         }
-        m_outFileStreamSpec->Close();
     }
-    m_outFileStream.Release();
+    m_outStream.Release();
 
     return S_OK;
 }
 
-
 Z7_COM7F_IMF(ArchiveExtractCallback::CryptoGetTextPassword(BSTR *password))
 {
     return StringToBstr(UString(m_password.toStdString().c_str()), password);
+}
+
+Z7_COM7F_IMF(ArchiveExtractCallback::COutDataStream::Write(const void *data, UInt32 size, UInt32 *processedSize))
+{
+    char *pData = m_data->data();
+    quint32 length = size;
+
+    if((m_dataPointer + length) >= m_data->size()) length = (m_data->size() - m_dataPointer);
+    memcpy(&pData[m_dataPointer], data, length);
+    *processedSize = length;
+    m_dataPointer += length;
+
+    return S_OK;
+}
+
+Z7_COM7F_IMF(ArchiveExtractCallback::COutDataStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64 *newPosition))
+{
+    if(offset < 0) return HRESULT_WIN32_ERROR_NEGATIVE_SEEK;
+
+    switch(seekOrigin)
+    {
+        case STREAM_SEEK_SET:
+            m_dataPointer = *newPosition = (offset < m_data->size()) ? offset : m_data->size();
+            break;
+        case STREAM_SEEK_CUR:
+            m_dataPointer = *newPosition = ((m_dataPointer + offset) < m_data->size()) ? (m_dataPointer + offset) : m_data->size();
+            break;
+        case STREAM_SEEK_END:
+            m_dataPointer = *newPosition = m_data->size();
+            break;
+        default:
+            return STG_E_INVALIDFUNCTION;
+    }
+
+    return S_OK;
+}
+
+Z7_COM7F_IMF(ArchiveExtractCallback::COutDataStream::SetSize(UInt64 newSize))
+{
+    m_data->resize(newSize);
+    return S_OK;
 }
 
 void ArchiveExtractCallback::setPassword(const QString &password)
@@ -158,13 +231,11 @@ bool ArchiveExtractCallback::getPropertyDir(UInt32 index, bool *isDir) const
     return false;
 }
 
-bool ArchiveExtractCallback::getPropertyFileFullPath(UInt32 index, UString *fullPath) const
+bool ArchiveExtractCallback::getPropertyFilePath(UInt32 index, UString *filePath) const
 {
     if(m_archiveHandler)
     {
         NCOM::CPropVariant property;
-        FString outputPath;
-        UString filePath;
 
         if(m_archiveHandler->GetProperty(index, kpidPath, &property) != S_OK)
         {
@@ -174,11 +245,7 @@ bool ArchiveExtractCallback::getPropertyFileFullPath(UInt32 index, UString *full
         {
             return false;
         }
-        filePath = property.bstrVal;
-
-        outputPath = FString(m_outputPath.toStdString().c_str());
-        NName::NormalizeDirPathPrefix(outputPath);
-        *fullPath = (outputPath + us2fs(filePath));
+        *filePath = property.bstrVal;
 
         return true;
     }
@@ -270,6 +337,17 @@ bool ArchiveExtractCallback::getPropertyFileSize(UInt32 index, UInt64 *fileSize)
     }
 
     return false;
+}
+
+UString ArchiveExtractCallback::fullPath(const UString &filePath) const
+{
+    if(!m_outputPath.isEmpty())
+    {
+        FString outputPath = FString(m_outputPath.toStdString().c_str());
+        NName::NormalizeDirPathPrefix(outputPath);
+        return UString(outputPath + us2fs(filePath));
+    }
+    return filePath;
 }
 
 Int32 ArchiveExtractCallback::getOperationResult() const

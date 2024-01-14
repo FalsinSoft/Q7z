@@ -10,6 +10,7 @@ extern "C" STDAPI CreateObject(const GUID *clsid, const GUID *iid, void **outObj
 
 using namespace NWindows;
 using namespace NFile;
+using namespace std;
 
 Q7zEncode::Q7zEncode() : m_compressionLevel(CompressionLevel::Normal),
                          m_compressionMode(CompressionMode::LZMA2),
@@ -18,26 +19,18 @@ Q7zEncode::Q7zEncode() : m_compressionLevel(CompressionLevel::Normal),
 {
 }
 
-bool Q7zEncode::create(const QString &archiveName, const QList<QString> &filesList, const QString &excludeBasePath)
+bool Q7zEncode::create(const QString &archiveName, const QStringList &files, const QString &excludeBasePath)
 {
     const GUID CLSIDFormat = { 0x23170F69, 0x40C1, 0x278A, { 0x10, 0x00, 0x00, 0x01, 0x10, 7, 0x00, 0x00 } };
-    ArchiveUpdateCallback *updateCallbackSpec = new ArchiveUpdateCallback;
+    ArchiveUpdateCallback *updateCallbackSpec = new ArchiveUpdateCallback(bind(&Q7zEncode::getFileContent, this, placeholders::_1, placeholders::_2));
     CMyComPtr<IArchiveUpdateCallback2> updateCallback(updateCallbackSpec);
 	COutFileStream *outFileStreamSpec = new COutFileStream;
 	CMyComPtr<IOutStream> outFileStream = outFileStreamSpec;
     CMyComPtr<IOutArchive> outArchive;
 
-    for(const auto &file : filesList)
+    for(const auto &name : files)
     {
-        const FString name(file.toStdString().c_str());
-        NFind::CFileInfo fileInfo;
-        
-        if(!fileInfo.Find(name))
-        {
-            return false;
-        }
-
-        updateCallbackSpec->addFile(file, fileInfo);
+        updateCallbackSpec->addFile(name);
     }
 
     if(CreateObject(&CLSIDFormat, &IID_IOutArchive, reinterpret_cast<void**>(&outArchive)) != S_OK)
@@ -135,4 +128,11 @@ void Q7zEncode::setCompressionMode(CompressionMode compressionMode)
 void Q7zEncode::setDictionarySize(uint mbDictionarySize)
 {
     m_mbDictionarySize = mbDictionarySize;
+}
+
+bool Q7zEncode::getFileContent(const QString &name, QByteArray *data)
+{
+    Q_UNUSED(name);
+    Q_UNUSED(data);
+    return false;
 }
