@@ -1,3 +1,5 @@
+#include <codecvt>
+#include <locale>
 #include "../LZMA/CPP/Windows/PropVariantConv.h"
 #include "../LZMA/CPP/Common/IntToString.h"
 #include "../LZMA/CPP/Windows/FileDir.h"
@@ -9,6 +11,7 @@ using namespace NWindows;
 using namespace NArchive;
 using namespace NFile;
 using namespace NDir;
+using namespace std;
 
 ArchiveExtractCallback::ArchiveExtractCallback(const ExtractFileFuncType &extractFileFunc,
                                                const FileContentFuncType &fileContentFunc) : m_extractFileFunc(extractFileFunc),
@@ -53,10 +56,11 @@ Z7_COM7F_IMF(ArchiveExtractCallback::GetStream(UInt32 index, ISequentialOutStrea
     }
     else
     {
+        wstring_convert<codecvt_utf8<wchar_t>> convert;
         CMyComPtr<ISequentialOutStream> outStreamLoc;
 
         m_saveFileToDisk = true;
-        if(m_extractFileFunc(QString::fromStdWString(filePath.GetBuf()), &m_saveFileToDisk) == false)
+        if(m_extractFileFunc(QString(convert.to_bytes(wstring(filePath.GetBuf())).c_str()), &m_saveFileToDisk) == false)
         {
             return S_OK;
         }
@@ -139,7 +143,8 @@ Z7_COM7F_IMF(ArchiveExtractCallback::SetOperationResult(Int32 operationResult))
         }
         else
         {
-            m_fileContentFunc(QString::fromStdWString(filePath.GetBuf()), m_fileContentData);
+            wstring_convert<codecvt_utf8<wchar_t>> convert;
+            m_fileContentFunc(QString(convert.to_bytes(wstring(filePath.GetBuf())).c_str()), m_fileContentData);
         }
     }
     m_outStream.Release();
@@ -149,7 +154,7 @@ Z7_COM7F_IMF(ArchiveExtractCallback::SetOperationResult(Int32 operationResult))
 
 Z7_COM7F_IMF(ArchiveExtractCallback::CryptoGetTextPassword(BSTR *password))
 {
-    return StringToBstr(UString(m_password.toStdString().c_str()), password);
+    return StringToBstr(m_password.toStdWString().c_str(), password);
 }
 
 Z7_COM7F_IMF(ArchiveExtractCallback::COutDataStream::Write(const void *data, UInt32 size, UInt32 *processedSize))
@@ -343,7 +348,7 @@ UString ArchiveExtractCallback::fullPath(const UString &filePath) const
 {
     if(!m_outputPath.isEmpty())
     {
-        FString outputPath = FString(m_outputPath.toStdString().c_str());
+        FString outputPath = us2fs(m_outputPath.toStdWString().c_str());
         NName::NormalizeDirPathPrefix(outputPath);
         return UString(outputPath + us2fs(filePath));
     }

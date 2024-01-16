@@ -200,6 +200,15 @@
     <ClCompile Include="Callbacks\ArchiveUpdateCallback.cpp">
       <Filter>Source Files\Callbacks</Filter>
     </ClCompile>
+    <ClCompile Include="LZMA\CPP\Common\C_FileIO.cpp">
+      <Filter>Source Files\LZMA\CPP\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="LZMA\CPP\Common\MyWindows.cpp">
+      <Filter>Source Files\LZMA\CPP\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="LZMA\CPP\Common\UTFConvert.cpp">
+      <Filter>Source Files\LZMA\CPP\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LZMA\C\7zCrc.c">
@@ -820,6 +829,12 @@
       <Filter>Header Files\Callbacks</Filter>
     </ClInclude>
     <ClInclude Include="LZMA\CPP\Common\MyGuidDef.h">
+      <Filter>Header Files\LZMA\CPP\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="LZMA\CPP\Common\C_FileIO.h">
+      <Filter>Header Files\LZMA\CPP\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="LZMA\CPP\Common\UTFConvert.h">
       <Filter>Header Files\LZMA\CPP\Common</Filter>
     </ClInclude>
   </ItemGroup>

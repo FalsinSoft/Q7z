@@ -5,7 +5,7 @@
 #include "Callbacks/ArchiveExtractCallback.h"
 #include "Q7zDecode.h"
 
-extern "C" STDAPI CreateObject(const GUID *clsid, const GUID *iid, void **outObject);
+STDAPI CreateObject(const GUID *clsid, const GUID *iid, void **outObject);
 
 using namespace NWindows;
 using namespace NFile;
@@ -32,7 +32,7 @@ bool Q7zDecode::extract(const QString &archiveName, const QString &outputPath)
     {
         return false;
     }
-    if(!fileSpec->Open(FString(archiveName.toStdString().c_str())))
+    if(!fileSpec->Open(us2fs(archiveName.toStdWString().c_str())))
     {
         return false;
     }
@@ -69,7 +69,7 @@ bool Q7zDecode::list(const QString &archiveName, FileInfoList *fileList)
     {
         return false;
     }
-    if(!fileSpec->Open(FString(archiveName.toStdString().c_str())))
+    if(!fileSpec->Open(us2fs(archiveName.toStdWString().c_str())))
     {
         return false;
     }

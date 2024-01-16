@@ -159,6 +159,7 @@
     <ClInclude Include="LZMA\CPP\Common\AutoPtr.h" />
     <ClInclude Include="LZMA\CPP\Common\Common.h" />
     <ClInclude Include="LZMA\CPP\Common\ComTry.h" />
+    <ClInclude Include="LZMA\CPP\Common\C_FileIO.h" />
     <ClInclude Include="LZMA\CPP\Common\Defs.h" />
     <ClInclude Include="LZMA\CPP\Common\IntToString.h" />
     <ClInclude Include="LZMA\CPP\Common\MyBuffer.h" />
@@ -177,6 +178,7 @@
     <ClInclude Include="LZMA\CPP\Common\StdAfx.h" />
     <ClInclude Include="LZMA\CPP\Common\StringConvert.h" />
     <ClInclude Include="LZMA\CPP\Common\StringToInt.h" />
+    <ClInclude Include="LZMA\CPP\Common\UTFConvert.h" />
     <ClInclude Include="LZMA\CPP\Common\Wildcard.h" />
     <ClInclude Include="LZMA\CPP\Windows\Defs.h" />
     <ClInclude Include="LZMA\CPP\Windows\FileDir.h" />
@@ -289,13 +291,16 @@
     <ClCompile Include="LZMA\CPP\7zip\Crypto\RandGen.cpp" />
     <ClCompile Include="LZMA\CPP\Common\CRC.cpp" />
     <ClCompile Include="LZMA\CPP\Common\CrcReg.cpp" />
+    <ClCompile Include="LZMA\CPP\Common\C_FileIO.cpp" />
     <ClCompile Include="LZMA\CPP\Common\IntToString.cpp" />
     <ClCompile Include="LZMA\CPP\Common\LzFindPrepare.cpp" />
     <ClCompile Include="LZMA\CPP\Common\MyString.cpp" />
     <ClCompile Include="LZMA\CPP\Common\MyVector.cpp" />
+    <ClCompile Include="LZMA\CPP\Common\MyWindows.cpp" />
     <ClCompile Include="LZMA\CPP\Common\NewHandler.cpp" />
     <ClCompile Include="LZMA\CPP\Common\StringConvert.cpp" />
     <ClCompile Include="LZMA\CPP\Common\StringToInt.cpp" />
+    <ClCompile Include="LZMA\CPP\Common\UTFConvert.cpp" />
     <ClCompile Include="LZMA\CPP\Common\Wildcard.cpp" />
     <ClCompile Include="LZMA\CPP\Windows\FileDir.cpp" />
     <ClCompile Include="LZMA\CPP\Windows\FileFind.cpp" />

@@ -16,7 +16,7 @@ Z7_COM7F_IMF(ArchiveOpenCallback::SetCompleted(const UInt64 *files, const UInt64
 
 Z7_COM7F_IMF(ArchiveOpenCallback::CryptoGetTextPassword(BSTR *password))
 {
-    return StringToBstr(UString(m_password.toStdString().c_str()), password);
+    return StringToBstr(m_password.toStdWString().c_str(), password);
 }
 
 void ArchiveOpenCallback::setPassword(const QString &password)

@@ -12,3 +12,7 @@ file(GLOB_RECURSE SOURCES "*.h" "*.cpp" "*.c")
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE Q7Z_LIB)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core)
+
+if(ANDROID)
+    target_compile_options(${PROJECT_NAME} PUBLIC -march=armv8+crypto)
+endif()

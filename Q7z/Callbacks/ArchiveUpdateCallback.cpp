@@ -45,11 +45,11 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetProperty(UInt32 index, PROPID propID, PRO
     {
         NFile::NFind::CFileInfo fileInfo;
 
-        fileInfo.Find(FString(file.name.toStdString().c_str()));
+        fileInfo.Find(us2fs(file.name.toStdWString().c_str()));
         switch(propID)
         {
             case kpidPath:
-                property = fs2us(FString(excludeBasePath(file.name).toStdString().c_str()));
+                property = excludeBasePath(file.name).toStdWString().c_str();
                 break;
             case kpidIsDir:
                 property = fileInfo.IsDir();
@@ -73,7 +73,7 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetProperty(UInt32 index, PROPID propID, PRO
         switch(propID)
         {
             case kpidPath:
-                property = fs2us(FString(excludeBasePath(file.name).toStdString().c_str()));
+                property = excludeBasePath(file.name).toStdWString().c_str();
                 break;
             case kpidSize:
                 property = static_cast<UInt64>(file.data.size());
@@ -103,7 +103,7 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetStream(UInt32 index, ISequentialInStream 
         {
             CInFileStream *inStreamSpec = new CInFileStream;
             CMyComPtr<ISequentialInStream> inStreamLoc(inStreamSpec);
-            if(!inStreamSpec->Open(FString(file.name.toStdString().c_str())))
+            if(!inStreamSpec->Open(us2fs(file.name.toStdWString().c_str())))
             {
                 return S_FALSE;
             }
@@ -138,7 +138,7 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetVolumeStream(UInt32 index, ISequentialOut
 Z7_COM7F_IMF(ArchiveUpdateCallback::CryptoGetTextPassword2(Int32 *passwordIsDefined, BSTR *password))
 {
     *passwordIsDefined = BoolToInt(!m_password.isEmpty());
-    return StringToBstr(UString(m_password.toStdString().c_str()), password);
+    return StringToBstr(m_password.toStdWString().c_str(), password);
 }
 
 Z7_COM7F_IMF(ArchiveUpdateCallback::CInDataStream::Read(void *data, UInt32 size, UInt32 *processedSize))

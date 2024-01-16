@@ -6,7 +6,7 @@
 #include "Callbacks/ArchiveUpdateCallback.h"
 #include "Q7zEncode.h"
 
-extern "C" STDAPI CreateObject(const GUID *clsid, const GUID *iid, void **outObject);
+STDAPI CreateObject(const GUID *clsid, const GUID *iid, void **outObject);
 
 using namespace NWindows;
 using namespace NFile;
@@ -37,7 +37,7 @@ bool Q7zEncode::create(const QString &archiveName, const QStringList &files, con
     {
         return false;
     }
-    if(!outFileStreamSpec->Create(FString(archiveName.toStdString().c_str()), true))
+    if(!outFileStreamSpec->Create(us2fs(archiveName.toStdWString().c_str()), true))
 	{
 		return false;
 	}
@@ -71,9 +71,9 @@ bool Q7zEncode::setOutProperties(IOutArchive *outArchive) const
         return false;
     }
 
-    propertyValues[0] = parseCompressionMode(m_compressionMode).toStdString().c_str();
+    propertyValues[0] = parseCompressionMode(m_compressionMode).toStdWString().c_str();
     propertyValues[1] = static_cast<UInt32>(m_compressionLevel);
-    propertyValues[2] = QString("%1m").arg(m_mbDictionarySize).toStdString().c_str();
+    propertyValues[2] = QString("%1m").arg(m_mbDictionarySize).toStdWString().c_str();
     propertyValues[3] = m_encryptHeaders;
 
     if(properties->SetProperties(propertyNames, propertyValues, propertyCount) != S_OK)
