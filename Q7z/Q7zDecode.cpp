@@ -3,6 +3,7 @@
 #include "LZMA/CPP/Windows/PropVariantConv.h"
 #include "Callbacks/ArchiveOpenCallback.h"
 #include "Callbacks/ArchiveExtractCallback.h"
+#include "Callbacks/ArchiveInStream.h"
 #include "Q7zDecode.h"
 
 STDAPI CreateObject(const GUID *clsid, const GUID *iid, void **outObject);
@@ -23,7 +24,7 @@ bool Q7zDecode::extract(const QString &archiveName, const QString &outputPath)
     ArchiveExtractCallback *extractCallbackSpec = new ArchiveExtractCallback(bind(&Q7zDecode::extractFile, this, placeholders::_1, placeholders::_2),
                                                                              bind(&Q7zDecode::fileContent, this, placeholders::_1, placeholders::_2));
     CMyComPtr<IArchiveExtractCallback> extractCallback(extractCallbackSpec);
-    CInFileStream *fileSpec = new CInFileStream;
+    ArchiveInStream *fileSpec = new ArchiveInStream;
     CMyComPtr<IInStream> file(fileSpec);
     CMyComPtr<IInArchive> archive;
     const UInt64 scanSize = 1 << 23;
@@ -32,7 +33,7 @@ bool Q7zDecode::extract(const QString &archiveName, const QString &outputPath)
     {
         return false;
     }
-    if(!fileSpec->Open(us2fs(archiveName.toStdWString().c_str())))
+    if(!fileSpec->open(archiveName))
     {
         return false;
     }

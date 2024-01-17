@@ -209,6 +209,12 @@
     <ClCompile Include="LZMA\CPP\Common\UTFConvert.cpp">
       <Filter>Source Files\LZMA\CPP\Common</Filter>
     </ClCompile>
+    <ClCompile Include="Callbacks\ArchiveOutStream.cpp">
+      <Filter>Source Files\Callbacks</Filter>
+    </ClCompile>
+    <ClCompile Include="Callbacks\ArchiveInStream.cpp">
+      <Filter>Source Files\Callbacks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LZMA\C\7zCrc.c">
@@ -836,6 +842,12 @@
     </ClInclude>
     <ClInclude Include="LZMA\CPP\Common\UTFConvert.h">
       <Filter>Header Files\LZMA\CPP\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Callbacks\ArchiveOutStream.h">
+      <Filter>Header Files\Callbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Callbacks\ArchiveInStream.h">
+      <Filter>Header Files\Callbacks</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

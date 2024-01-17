@@ -4,6 +4,7 @@
 #include "LZMA/CPP/Windows/FileFind.h"
 #include "LZMA/CPP/Windows/FileName.h"
 #include "Callbacks/ArchiveUpdateCallback.h"
+#include "Callbacks/ArchiveOutStream.h"
 #include "Q7zEncode.h"
 
 STDAPI CreateObject(const GUID *clsid, const GUID *iid, void **outObject);
@@ -24,7 +25,7 @@ bool Q7zEncode::create(const QString &archiveName, const QStringList &files, con
     const GUID CLSIDFormat = { 0x23170F69, 0x40C1, 0x278A, { 0x10, 0x00, 0x00, 0x01, 0x10, 7, 0x00, 0x00 } };
     ArchiveUpdateCallback *updateCallbackSpec = new ArchiveUpdateCallback(bind(&Q7zEncode::getFileContent, this, placeholders::_1, placeholders::_2));
     CMyComPtr<IArchiveUpdateCallback2> updateCallback(updateCallbackSpec);
-	COutFileStream *outFileStreamSpec = new COutFileStream;
+    ArchiveOutStream *outFileStreamSpec = new ArchiveOutStream;
 	CMyComPtr<IOutStream> outFileStream = outFileStreamSpec;
     CMyComPtr<IOutArchive> outArchive;
 
@@ -37,7 +38,7 @@ bool Q7zEncode::create(const QString &archiveName, const QStringList &files, con
     {
         return false;
     }
-    if(!outFileStreamSpec->Create(us2fs(archiveName.toStdWString().c_str()), true))
+    if(!outFileStreamSpec->create(archiveName))
 	{
 		return false;
 	}
