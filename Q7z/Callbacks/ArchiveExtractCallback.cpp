@@ -14,19 +14,24 @@ using namespace NDir;
 using namespace std;
 
 ArchiveExtractCallback::ArchiveExtractCallback(const ExtractFileFuncType &extractFileFunc,
-                                               const FileContentFuncType &fileContentFunc) : m_extractFileFunc(extractFileFunc),
+                                               const FileContentFuncType &fileContentFunc,
+                                               const ExtractInfoFuncType &extractInfoFunc) : m_extractFileFunc(extractFileFunc),
                                                                                              m_fileContentFunc(fileContentFunc),
-                                                                                             m_operationResult(NExtract::NOperationResult::kOK)
+                                                                                             m_extractInfoFunc(extractInfoFunc),
+                                                                                             m_operationResult(NExtract::NOperationResult::kOK),
+                                                                                             m_totalSize(0)
 {
 }
 
 Z7_COM7F_IMF(ArchiveExtractCallback::SetTotal(UInt64 size))
 {
+    m_totalSize = size;
     return S_OK;
 }
 
 Z7_COM7F_IMF(ArchiveExtractCallback::SetCompleted(const UInt64 *completeValue))
 {
+    m_extractInfoFunc(m_totalSize, *completeValue);
     return S_OK;
 }
 

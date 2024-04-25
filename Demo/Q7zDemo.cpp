@@ -59,7 +59,7 @@ void Q7zDemo::on_createArchiveButton_clicked()
     const QString archivePath = ui.archivePath->text();
     const QString excludeBasePath = ui.excludeBasePath->text();
     QStringList files;
-    Encode encode;
+    Encode encode(this);
 
     files << "Q7zDemo_readme.txt";
     for(int i = 0; i < ui.filesList->count(); i++) files << ui.filesList->item(i)->text();
@@ -121,7 +121,7 @@ void Q7zDemo::on_extractArchiveButton_clicked()
 {
     const QString archivePath = ui.archivePath->text();
     const QString outputPath = ui.outputPath->text();
-    Decode decode;
+    Decode decode(this);
 
     if(archivePath.isEmpty() || outputPath.isEmpty())
     {
@@ -166,7 +166,7 @@ void Q7zDemo::on_listArchiveButton_clicked()
 {
     const QString archivePath = ui.archivePath->text();
     Q7zDecode::FileInfoList fileList;
-    Decode decode;
+    Decode decode(this);
 
     if(archivePath.isEmpty())
     {
@@ -215,6 +215,11 @@ bool Q7zDemo::Encode::getFileContent(const QString &name, QByteArray *data)
     return false;
 }
 
+void Q7zDemo::Encode::encodeInfo(quint64 totalSize, quint64 encodedSize)
+{
+    m_parent->ui.encodeProgress->setValue((encodedSize * 100) / totalSize);
+}
+
 bool Q7zDemo::Decode::extractFile(const QString &name, bool *saveToDisk)
 {
     if(name == "Q7zDemo_readme.txt") *saveToDisk = false;
@@ -227,4 +232,9 @@ void Q7zDemo::Decode::fileContent(const QString &name, const QByteArray &data)
     {
         //...
     }
+}
+
+void Q7zDemo::Decode::decodeInfo(quint64 totalSize, quint64 decodedSize)
+{
+    m_parent->ui.decodeProgress->setValue((decodedSize * 100) / totalSize);
 }

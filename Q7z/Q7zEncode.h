@@ -46,6 +46,7 @@ public:
 
 protected:
     virtual bool getFileContent(const QString &name, QByteArray *data);
+    virtual void encodeInfo(quint64 totalSize, quint64 encodedSize);
 
 private:
     QString m_password;

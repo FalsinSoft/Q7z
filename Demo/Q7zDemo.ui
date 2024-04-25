@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>852</width>
-    <height>534</height>
+    <height>568</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -176,6 +176,16 @@
          </layout>
         </item>
         <item>
+         <widget class="QProgressBar" name="encodeProgress">
+          <property name="value">
+           <number>0</number>
+          </property>
+          <property name="textVisible">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="createArchiveButton">
           <property name="minimumSize">
            <size>
@@ -263,6 +273,26 @@
          </layout>
         </item>
         <item>
+         <widget class="QProgressBar" name="decodeProgress">
+          <property name="textVisible">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
          <widget class="QPushButton" name="extractArchiveButton">
           <property name="minimumSize">
            <size>
@@ -279,19 +309,6 @@
            <string>Extract</string>
           </property>
          </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </widget>

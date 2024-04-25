@@ -40,7 +40,9 @@ class ArchiveUpdateCallback Z7_final : public IArchiveUpdateCallback2,
 
 public:
     using GetFileContentFuncType = std::function<bool(const QString&, QByteArray*)>;
-    ArchiveUpdateCallback(const GetFileContentFuncType &getFileContentFunc);
+    using UpdateInfoFuncType = std::function<void(quint64, quint64)>;
+    ArchiveUpdateCallback(const GetFileContentFuncType &getFileContentFunc,
+                          const UpdateInfoFuncType &updateInfoFunc);
 
     void addFile(const QString &name);
     int filesCount() const;
@@ -49,9 +51,11 @@ public:
 
 private:
     GetFileContentFuncType m_getFileContentFunc;
+    UpdateInfoFuncType m_updateInfoFunc;
     QList<FileData> m_fileDataList;
     QString m_password;
     QString m_excludeBasePath;
+    quint64 m_totalSize;
 
     QString excludeBasePath(const QString &filePath) const;
 };

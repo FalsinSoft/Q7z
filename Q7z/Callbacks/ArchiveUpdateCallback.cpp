@@ -5,17 +5,22 @@
 using namespace NWindows;
 using namespace std;
 
-ArchiveUpdateCallback::ArchiveUpdateCallback(const GetFileContentFuncType &getFileContentFunc) : m_getFileContentFunc(getFileContentFunc)
+ArchiveUpdateCallback::ArchiveUpdateCallback(const GetFileContentFuncType &getFileContentFunc,
+                                             const UpdateInfoFuncType &updateInfoFunc) : m_getFileContentFunc(getFileContentFunc),
+                                                                                         m_updateInfoFunc(updateInfoFunc),
+                                                                                         m_totalSize(0)
 {
 }
 
 Z7_COM7F_IMF(ArchiveUpdateCallback::SetTotal(UInt64 size))
 {
+    m_totalSize = size;
     return S_OK;
 }
 
 Z7_COM7F_IMF(ArchiveUpdateCallback::SetCompleted(const UInt64 *completeValue))
 {
+    m_updateInfoFunc(m_totalSize, *completeValue);
     return S_OK;
 }
 

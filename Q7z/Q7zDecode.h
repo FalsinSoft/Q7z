@@ -33,6 +33,7 @@ public:
 protected:
     virtual bool extractFile(const QString &name, bool *saveToDisk);
     virtual void fileContent(const QString &name, const QByteArray &data);
+    virtual void decodeInfo(quint64 totalSize, quint64 decodedSize);
 
 private:
     QString m_password;

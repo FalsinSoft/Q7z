@@ -12,14 +12,22 @@ class Q7zDemo : public QMainWindow
     class Encode : public Q7zEncode
     {
     public:
+        Encode(Q7zDemo *parent) : m_parent(parent) {}
         bool getFileContent(const QString &name, QByteArray *data) override;
+        void encodeInfo(quint64 totalSize, quint64 encodedSize) override;
+    private:
+        Q7zDemo *m_parent;
     };
 
     class Decode : public Q7zDecode
     {
     public:
+        Decode(Q7zDemo *parent) : m_parent(parent) {}
         bool extractFile(const QString &name, bool *saveToDisk) override;
         void fileContent(const QString &name, const QByteArray &data) override;
+        void decodeInfo(quint64 totalSize, quint64 decodedSize) override;
+    private:
+        Q7zDemo *m_parent;
     };
 
 public:

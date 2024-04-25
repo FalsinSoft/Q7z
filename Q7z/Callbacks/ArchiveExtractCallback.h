@@ -24,8 +24,10 @@ class ArchiveExtractCallback Z7_final : public IArchiveExtractCallback,
 public:
     using ExtractFileFuncType = std::function<bool(const QString&, bool*)>;
     using FileContentFuncType = std::function<void(const QString&, const QByteArray&)>;
+    using ExtractInfoFuncType = std::function<void(quint64, quint64)>;
     ArchiveExtractCallback(const ExtractFileFuncType &extractFileFunc,
-                           const FileContentFuncType &fileContentFunc);
+                           const FileContentFuncType &fileContentFunc,
+                           const ExtractInfoFuncType &extractInfoFunc);
 
     void setArchive(IInArchive *archiveHandler);
     void setOutputPath(const QString &outputPath);
@@ -35,6 +37,7 @@ public:
 private:
     ExtractFileFuncType m_extractFileFunc;
     FileContentFuncType m_fileContentFunc;
+    ExtractInfoFuncType m_extractInfoFunc;
     CMyComPtr<ISequentialOutStream> m_outStream;
     CMyComPtr<IInArchive> m_archiveHandler;
     COutFileStream *m_outFileStreamSpec;
@@ -45,6 +48,7 @@ private:
     UInt32 m_outFileIndex;
     QString m_outputPath;
     QString m_password;
+    quint64 m_totalSize;
 
     bool getPropertyDir(UInt32 index, bool *isDir) const;
     bool getPropertyFilePath(UInt32 index, UString *filePath) const;

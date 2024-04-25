@@ -22,7 +22,8 @@ bool Q7zDecode::extract(const QString &archiveName, const QString &outputPath)
     ArchiveOpenCallback *openCallbackSpec = new ArchiveOpenCallback;
     CMyComPtr<IArchiveOpenCallback> openCallback(openCallbackSpec);
     ArchiveExtractCallback *extractCallbackSpec = new ArchiveExtractCallback(bind(&Q7zDecode::extractFile, this, placeholders::_1, placeholders::_2),
-                                                                             bind(&Q7zDecode::fileContent, this, placeholders::_1, placeholders::_2));
+                                                                             bind(&Q7zDecode::fileContent, this, placeholders::_1, placeholders::_2),
+                                                                             bind(&Q7zDecode::decodeInfo, this, placeholders::_1, placeholders::_2));
     CMyComPtr<IArchiveExtractCallback> extractCallback(extractCallbackSpec);
     ArchiveInStream *fileSpec = new ArchiveInStream;
     CMyComPtr<IInStream> file(fileSpec);
@@ -117,4 +118,10 @@ void Q7zDecode::fileContent(const QString &name, const QByteArray &data)
 {
     Q_UNUSED(name);
     Q_UNUSED(data);
+}
+
+void Q7zDecode::decodeInfo(quint64 totalSize, quint64 decodedSize)
+{
+    Q_UNUSED(totalSize);
+    Q_UNUSED(decodedSize);
 }
