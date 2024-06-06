@@ -1,10 +1,10 @@
 #include <codecvt>
 #include <locale>
-#include "../LZMA/CPP/Windows/PropVariantConv.h"
 #include "../LZMA/CPP/Common/IntToString.h"
 #include "../LZMA/CPP/Windows/FileDir.h"
 #include "../LZMA/CPP/Windows/FileFind.h"
 #include "../LZMA/CPP/Windows/FileName.h"
+#include "../LZMA/CPP/Windows/PropVariantConv.h"
 #include "ArchiveExtractCallback.h"
 
 using namespace NWindows;
@@ -89,7 +89,7 @@ Z7_COM7F_IMF(ArchiveExtractCallback::GetStream(UInt32 index, ISequentialOutStrea
                 CreateComplexDir(us2fs(fileFullPath.Left(slashPos)));
             }
 
-            if(!m_outFileStreamSpec->Open(us2fs(fileFullPath), CREATE_ALWAYS))
+            if(!m_outFileStreamSpec->Create_ALWAYS(us2fs(fileFullPath)))
             {
                 return E_ABORT;
             }

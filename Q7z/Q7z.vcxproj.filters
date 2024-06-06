@@ -849,5 +849,8 @@
     <ClInclude Include="Callbacks\ArchiveInStream.h">
       <Filter>Header Files\Callbacks</Filter>
     </ClInclude>
+    <ClInclude Include="LZMA\CPP\Common\Common0.h">
+      <Filter>Header Files\LZMA\CPP\Common</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

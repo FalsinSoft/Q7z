@@ -160,6 +160,7 @@
     <ClInclude Include="LZMA\CPP\7zip\PropID.h" />
     <ClInclude Include="LZMA\CPP\Common\AutoPtr.h" />
     <ClInclude Include="LZMA\CPP\Common\Common.h" />
+    <ClInclude Include="LZMA\CPP\Common\Common0.h" />
     <ClInclude Include="LZMA\CPP\Common\ComTry.h" />
     <ClInclude Include="LZMA\CPP\Common\C_FileIO.h" />
     <ClInclude Include="LZMA\CPP\Common\Defs.h" />
