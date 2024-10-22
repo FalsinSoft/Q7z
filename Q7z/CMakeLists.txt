@@ -8,11 +8,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core)
 
-file(GLOB_RECURSE SOURCES "*.h" "*.cpp" "*.c")
+file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.h *.cpp *.c)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE Q7Z_LIB)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core)
 
 if(ANDROID)
-    target_compile_options(${PROJECT_NAME} PUBLIC -march=armv8+crypto)
+    if(${ANDROID_ABI} STREQUAL "arm64-v8a")
+        target_compile_options(${PROJECT_NAME} PUBLIC -march=armv8+crypto)
+    endif()
 endif()
+
