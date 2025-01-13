@@ -13,6 +13,8 @@
 # define Q7Z_EXPORT
 #endif
 
+struct IInStream;
+
 class Q7Z_EXPORT Q7zDecode
 {
 public:
@@ -26,7 +28,9 @@ public:
     using FileInfoList = QList<FileInfo>;
 
     bool extract(const QString &archiveName, const QString &outputPath);
+    bool extract(const QByteArray &archiveData);
     bool list(const QString &archiveName, FileInfoList *fileList);
+    bool list(const QByteArray &archiveData, FileInfoList *fileList);
 
     void setPassword(const QString &password);
 
@@ -37,4 +41,7 @@ protected:
 
 private:
     QString m_password;
+
+    bool extract(IInStream *fileSpec, const QString &outputPath = QString());
+    bool list(IInStream *fileSpec, FileInfoList *fileList);
 };

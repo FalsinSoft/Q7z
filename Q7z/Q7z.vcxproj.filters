@@ -13,10 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>qrc;rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Form Files">
-      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
-      <Extensions>ui</Extensions>
-    </Filter>
     <Filter Include="Translation Files">
       <UniqueIdentifier>{639EADAA-A684-42e4-A9AD-28FC9BCB8F7C}</UniqueIdentifier>
       <Extensions>ts</Extensions>
@@ -209,10 +205,16 @@
     <ClCompile Include="LZMA\CPP\Common\UTFConvert.cpp">
       <Filter>Source Files\LZMA\CPP\Common</Filter>
     </ClCompile>
-    <ClCompile Include="Callbacks\ArchiveOutStream.cpp">
+    <ClCompile Include="Callbacks\ArchiveFileOutStream.cpp">
       <Filter>Source Files\Callbacks</Filter>
     </ClCompile>
-    <ClCompile Include="Callbacks\ArchiveInStream.cpp">
+    <ClCompile Include="Callbacks\ArchiveFileInStream.cpp">
+      <Filter>Source Files\Callbacks</Filter>
+    </ClCompile>
+    <ClCompile Include="Callbacks\ArchiveMemoryInStream.cpp">
+      <Filter>Source Files\Callbacks</Filter>
+    </ClCompile>
+    <ClCompile Include="Callbacks\ArchiveMemoryOutStream.cpp">
       <Filter>Source Files\Callbacks</Filter>
     </ClCompile>
   </ItemGroup>
@@ -843,14 +845,20 @@
     <ClInclude Include="LZMA\CPP\Common\UTFConvert.h">
       <Filter>Header Files\LZMA\CPP\Common</Filter>
     </ClInclude>
-    <ClInclude Include="Callbacks\ArchiveOutStream.h">
+    <ClInclude Include="Callbacks\ArchiveFileOutStream.h">
       <Filter>Header Files\Callbacks</Filter>
     </ClInclude>
-    <ClInclude Include="Callbacks\ArchiveInStream.h">
+    <ClInclude Include="Callbacks\ArchiveFileInStream.h">
       <Filter>Header Files\Callbacks</Filter>
     </ClInclude>
     <ClInclude Include="LZMA\CPP\Common\Common0.h">
       <Filter>Header Files\LZMA\CPP\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Callbacks\ArchiveMemoryInStream.h">
+      <Filter>Header Files\Callbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Callbacks\ArchiveMemoryOutStream.h">
+      <Filter>Header Files\Callbacks</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

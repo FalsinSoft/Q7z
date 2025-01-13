@@ -1,5 +1,3 @@
-#include <codecvt>
-#include <locale>
 #include "../LZMA/CPP/Common/IntToString.h"
 #include "../LZMA/CPP/Windows/FileDir.h"
 #include "../LZMA/CPP/Windows/FileFind.h"
@@ -61,11 +59,10 @@ Z7_COM7F_IMF(ArchiveExtractCallback::GetStream(UInt32 index, ISequentialOutStrea
     }
     else
     {
-        wstring_convert<codecvt_utf8<wchar_t>> convert;
         CMyComPtr<ISequentialOutStream> outStreamLoc;
 
         m_saveFileToDisk = true;
-        if(m_extractFileFunc(QString(convert.to_bytes(wstring(filePath.GetBuf())).c_str()), &m_saveFileToDisk) == false)
+        if(m_extractFileFunc(QString::fromWCharArray(filePath.GetBuf()), &m_saveFileToDisk) == false)
         {
             return S_OK;
         }
@@ -148,8 +145,7 @@ Z7_COM7F_IMF(ArchiveExtractCallback::SetOperationResult(Int32 operationResult))
         }
         else
         {
-            wstring_convert<codecvt_utf8<wchar_t>> convert;
-            m_fileContentFunc(QString(convert.to_bytes(wstring(filePath.GetBuf())).c_str()), m_fileContentData);
+            m_fileContentFunc(QString::fromWCharArray(filePath.GetBuf()), m_fileContentData);
         }
     }
     m_outStream.Release();
@@ -159,7 +155,7 @@ Z7_COM7F_IMF(ArchiveExtractCallback::SetOperationResult(Int32 operationResult))
 
 Z7_COM7F_IMF(ArchiveExtractCallback::CryptoGetTextPassword(BSTR *password))
 {
-    return StringToBstr(m_password.toStdWString().c_str(), password);
+    return StringToBstr(qUtf16Printable(m_password), password);
 }
 
 Z7_COM7F_IMF(ArchiveExtractCallback::COutDataStream::Write(const void *data, UInt32 size, UInt32 *processedSize))
@@ -182,17 +178,18 @@ Z7_COM7F_IMF(ArchiveExtractCallback::COutDataStream::Seek(Int64 offset, UInt32 s
     switch(seekOrigin)
     {
         case STREAM_SEEK_SET:
-            m_dataPointer = *newPosition = (offset < m_data->size()) ? offset : m_data->size();
+            m_dataPointer = (offset < m_data->size()) ? offset : m_data->size();
             break;
         case STREAM_SEEK_CUR:
-            m_dataPointer = *newPosition = ((m_dataPointer + offset) < m_data->size()) ? (m_dataPointer + offset) : m_data->size();
+            m_dataPointer = ((m_dataPointer + offset) < m_data->size()) ? (m_dataPointer + offset) : m_data->size();
             break;
         case STREAM_SEEK_END:
-            m_dataPointer = *newPosition = m_data->size();
+            m_dataPointer = m_data->size();
             break;
         default:
             return STG_E_INVALIDFUNCTION;
     }
+    if(newPosition) *newPosition = m_dataPointer;
 
     return S_OK;
 }
@@ -353,7 +350,7 @@ UString ArchiveExtractCallback::fullPath(const UString &filePath) const
 {
     if(!m_outputPath.isEmpty())
     {
-        FString outputPath = us2fs(m_outputPath.toStdWString().c_str());
+        FString outputPath = us2fs(qUtf16Printable(m_outputPath));
         NName::NormalizeDirPathPrefix(outputPath);
         return UString(outputPath + us2fs(filePath));
     }

@@ -94,9 +94,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Callbacks\ArchiveExtractCallback.h" />
-    <ClInclude Include="Callbacks\ArchiveInStream.h" />
+    <ClInclude Include="Callbacks\ArchiveFileInStream.h" />
+    <ClInclude Include="Callbacks\ArchiveMemoryInStream.h" />
+    <ClInclude Include="Callbacks\ArchiveMemoryOutStream.h" />
     <ClInclude Include="Callbacks\ArchiveOpenCallback.h" />
-    <ClInclude Include="Callbacks\ArchiveOutStream.h" />
+    <ClInclude Include="Callbacks\ArchiveFileOutStream.h" />
     <ClInclude Include="Callbacks\ArchiveUpdateCallback.h" />
     <ClInclude Include="LZMA\CPP\7zip\Archive\7z\7zCompressionMode.h" />
     <ClInclude Include="LZMA\CPP\7zip\Archive\7z\7zDecode.h" />
@@ -226,9 +228,11 @@
     <ClInclude Include="Q7zDecode.h" />
     <ClInclude Include="Q7zEncode.h" />
     <ClCompile Include="Callbacks\ArchiveExtractCallback.cpp" />
-    <ClCompile Include="Callbacks\ArchiveInStream.cpp" />
+    <ClCompile Include="Callbacks\ArchiveFileInStream.cpp" />
+    <ClCompile Include="Callbacks\ArchiveMemoryInStream.cpp" />
+    <ClCompile Include="Callbacks\ArchiveMemoryOutStream.cpp" />
     <ClCompile Include="Callbacks\ArchiveOpenCallback.cpp" />
-    <ClCompile Include="Callbacks\ArchiveOutStream.cpp" />
+    <ClCompile Include="Callbacks\ArchiveFileOutStream.cpp" />
     <ClCompile Include="Callbacks\ArchiveUpdateCallback.cpp" />
     <ClCompile Include="LZMA\CPP\7zip\Archive\7z\7zCompressionMode.cpp" />
     <ClCompile Include="LZMA\CPP\7zip\Archive\7z\7zDecode.cpp" />

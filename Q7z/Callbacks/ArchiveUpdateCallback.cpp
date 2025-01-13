@@ -50,11 +50,11 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetProperty(UInt32 index, PROPID propID, PRO
     {
         NFile::NFind::CFileInfo fileInfo;
 
-        fileInfo.Find(us2fs(file.name.toStdWString().c_str()));
+        fileInfo.Find(us2fs(qUtf16Printable(file.name)));
         switch(propID)
         {
             case kpidPath:
-                property = excludeBasePath(file.name).toStdWString().c_str();
+                property = qUtf16Printable(excludeBasePath(file.name));
                 break;
             case kpidIsDir:
                 property = fileInfo.IsDir();
@@ -78,7 +78,7 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetProperty(UInt32 index, PROPID propID, PRO
         switch(propID)
         {
             case kpidPath:
-                property = excludeBasePath(file.name).toStdWString().c_str();
+                property = qUtf16Printable(excludeBasePath(file.name));
                 break;
             case kpidSize:
                 property = static_cast<UInt64>(file.data.size());
@@ -108,7 +108,7 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetStream(UInt32 index, ISequentialInStream 
         {
             CInFileStream *inStreamSpec = new CInFileStream;
             CMyComPtr<ISequentialInStream> inStreamLoc(inStreamSpec);
-            if(!inStreamSpec->Open(us2fs(file.name.toStdWString().c_str())))
+            if(!inStreamSpec->Open(us2fs(qUtf16Printable(file.name))))
             {
                 return S_FALSE;
             }
@@ -143,7 +143,7 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetVolumeStream(UInt32 index, ISequentialOut
 Z7_COM7F_IMF(ArchiveUpdateCallback::CryptoGetTextPassword2(Int32 *passwordIsDefined, BSTR *password))
 {
     *passwordIsDefined = BoolToInt(!m_password.isEmpty());
-    return StringToBstr(m_password.toStdWString().c_str(), password);
+    return StringToBstr(qUtf16Printable(m_password), password);
 }
 
 Z7_COM7F_IMF(ArchiveUpdateCallback::CInDataStream::Read(void *data, UInt32 size, UInt32 *processedSize))
@@ -166,17 +166,18 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::CInDataStream::Seek(Int64 offset, UInt32 see
     switch(seekOrigin)
     {
         case STREAM_SEEK_SET:
-            m_dataPointer = *newPosition = (offset < m_data->size()) ? offset : m_data->size();
+            m_dataPointer = (offset < m_data->size()) ? offset : m_data->size();
             break;
         case STREAM_SEEK_CUR:
-            m_dataPointer = *newPosition = ((m_dataPointer + offset) < m_data->size()) ? (m_dataPointer + offset) : m_data->size();
+            m_dataPointer = ((m_dataPointer + offset) < m_data->size()) ? (m_dataPointer + offset) : m_data->size();
             break;
         case STREAM_SEEK_END:
-            m_dataPointer = *newPosition = m_data->size();
+            m_dataPointer = m_data->size();
             break;
         default:
             return STG_E_INVALIDFUNCTION;
     }
+    if(newPosition) *newPosition = m_dataPointer;
 
     return S_OK;
 }

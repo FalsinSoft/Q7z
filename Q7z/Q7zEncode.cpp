@@ -4,7 +4,8 @@
 #include "LZMA/CPP/Windows/FileFind.h"
 #include "LZMA/CPP/Windows/FileName.h"
 #include "Callbacks/ArchiveUpdateCallback.h"
-#include "Callbacks/ArchiveOutStream.h"
+#include "Callbacks/ArchiveFileOutStream.h"
+#include "Callbacks/ArchiveMemoryOutStream.h"
 #include "Q7zEncode.h"
 
 STDAPI CreateObject(const GUID *clsid, const GUID *iid, void **outObject);
@@ -22,38 +23,57 @@ Q7zEncode::Q7zEncode() : m_compressionLevel(CompressionLevel::Normal),
 
 bool Q7zEncode::create(const QString &archiveName, const QStringList &files, const QString &excludeBasePath)
 {
+    ArchiveFileOutStream *fileSpec = new ArchiveFileOutStream;
+
+    if(!fileSpec->create(archiveName))
+    {
+        return false;
+    }
+
+    if(!create(fileSpec, files, excludeBasePath))
+    {
+        QFile::remove(archiveName);
+        return false;
+    }
+
+    return true;
+}
+
+bool Q7zEncode::create(QByteArray *archiveData, const QStringList &files, const QString &excludeBasePath)
+{
+    ArchiveMemoryOutStream *fileSpec = new ArchiveMemoryOutStream;
+
+    fileSpec->setData(archiveData);
+    return create(fileSpec, files, excludeBasePath);
+}
+
+bool Q7zEncode::create(IOutStream *fileSpec, const QStringList &files, const QString &excludeBasePath)
+{
     const GUID CLSIDFormat = { 0x23170F69, 0x40C1, 0x278A, { 0x10, 0x00, 0x00, 0x01, 0x10, 7, 0x00, 0x00 } };
     ArchiveUpdateCallback *updateCallbackSpec = new ArchiveUpdateCallback(bind(&Q7zEncode::getFileContent, this, placeholders::_1, placeholders::_2),
                                                                           bind(&Q7zEncode::encodeInfo, this, placeholders::_1, placeholders::_2));
     CMyComPtr<IArchiveUpdateCallback2> updateCallback(updateCallbackSpec);
-    ArchiveOutStream *outFileStreamSpec = new ArchiveOutStream;
-	CMyComPtr<IOutStream> outFileStream = outFileStreamSpec;
-    CMyComPtr<IOutArchive> outArchive;
+	CMyComPtr<IOutStream> file = fileSpec;
+    CMyComPtr<IOutArchive> archive;
 
     for(const auto &name : files)
     {
         updateCallbackSpec->addFile(name);
     }
 
-    if(CreateObject(&CLSIDFormat, &IID_IOutArchive, reinterpret_cast<void**>(&outArchive)) != S_OK)
+    if(CreateObject(&CLSIDFormat, &IID_IOutArchive, reinterpret_cast<void**>(&archive)) != S_OK)
     {
         return false;
     }
-    if(!outFileStreamSpec->create(archiveName))
-	{
-		return false;
-	}
 
     updateCallbackSpec->setPassword(m_password);
     updateCallbackSpec->setExcludeBasePath(excludeBasePath);
-    if(!setOutProperties(outArchive))
+    if(!setOutProperties(archive))
     {
-        QFile::remove(archiveName);
         return false;
     }
-    if(outArchive->UpdateItems(outFileStream, updateCallbackSpec->filesCount(), updateCallback) != S_OK)
+    if(archive->UpdateItems(file, updateCallbackSpec->filesCount(), updateCallback) != S_OK)
     {
-        QFile::remove(archiveName);
         return false;
     }
 
@@ -62,9 +82,8 @@ bool Q7zEncode::create(const QString &archiveName, const QStringList &files, con
 
 bool Q7zEncode::setOutProperties(IOutArchive *outArchive) const
 {
-    const wchar_t *propertyNames[] = { L"m", L"x", L"d", L"he" };
-    const uint propertyCount = Z7_ARRAY_SIZE(propertyNames);
-    NCOM::CPropVariant propertyValues[propertyCount];
+    CRecordVector<const wchar_t*> propertyNames;
+    NCOM::CPropVariant propertyValues[4];
     CMyComPtr<ISetProperties> properties;
 
     outArchive->QueryInterface(IID_ISetProperties, reinterpret_cast<void**>(&properties));
@@ -73,12 +92,16 @@ bool Q7zEncode::setOutProperties(IOutArchive *outArchive) const
         return false;
     }
 
-    propertyValues[0] = parseCompressionMode(m_compressionMode).toStdWString().c_str();
+    propertyNames.Add(L"m");
+    propertyValues[0] = qUtf16Printable(parseCompressionMode(m_compressionMode));
+    propertyNames.Add(L"x");
     propertyValues[1] = static_cast<UInt32>(m_compressionLevel);
-    propertyValues[2] = QString("%1m").arg(m_mbDictionarySize).toStdWString().c_str();
+    propertyNames.Add(L"d");
+    propertyValues[2] = qUtf16Printable(QString("%1m").arg(m_mbDictionarySize));
+    propertyNames.Add(L"he");
     propertyValues[3] = m_encryptHeaders;
 
-    if(properties->SetProperties(propertyNames, propertyValues, propertyCount) != S_OK)
+    if(properties->SetProperties(&propertyNames.FrontItem(), propertyValues, 4) != S_OK)
     {
         return false;
     }

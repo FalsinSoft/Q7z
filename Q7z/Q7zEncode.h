@@ -14,6 +14,7 @@
 #endif
 
 struct IOutArchive;
+struct IOutStream;
 
 class Q7Z_EXPORT Q7zEncode
 {
@@ -37,6 +38,7 @@ public:
     };
 
     bool create(const QString &archiveName, const QStringList &files, const QString &excludeBasePath = QString());
+    bool create(QByteArray *archiveData, const QStringList &files, const QString &excludeBasePath = QString());
 
     void setPassword(const QString &password);
     void setEncryptHeaders(bool encryptHeaders);
@@ -57,4 +59,5 @@ private:
 
     bool setOutProperties(IOutArchive *outArchive) const;
     QString parseCompressionMode(CompressionMode compressionMode) const;
+    bool create(IOutStream *fileSpec, const QStringList &files, const QString &excludeBasePath);
 };

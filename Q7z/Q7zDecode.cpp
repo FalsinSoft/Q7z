@@ -3,7 +3,8 @@
 #include "LZMA/CPP/Windows/PropVariantConv.h"
 #include "Callbacks/ArchiveOpenCallback.h"
 #include "Callbacks/ArchiveExtractCallback.h"
-#include "Callbacks/ArchiveInStream.h"
+#include "Callbacks/ArchiveFileInStream.h"
+#include "Callbacks/ArchiveMemoryInStream.h"
 #include "Q7zDecode.h"
 
 STDAPI CreateObject(const GUID *clsid, const GUID *iid, void **outObject);
@@ -18,6 +19,25 @@ Q7zDecode::Q7zDecode()
 
 bool Q7zDecode::extract(const QString &archiveName, const QString &outputPath)
 {
+    ArchiveFileInStream *fileSpec = new ArchiveFileInStream;
+
+    if(!fileSpec->open(archiveName))
+    {
+        return false;
+    }
+
+    return extract(fileSpec, outputPath);
+}
+
+bool Q7zDecode::extract(const QByteArray &archiveData)
+{
+    ArchiveMemoryInStream *fileSpec = new ArchiveMemoryInStream;
+    fileSpec->setData(const_cast<QByteArray*>(&archiveData));
+    return extract(fileSpec);
+}
+
+bool Q7zDecode::extract(IInStream *fileSpec, const QString &outputPath)
+{
     const GUID CLSIDFormat = { 0x23170F69, 0x40C1, 0x278A, { 0x10, 0x00, 0x00, 0x01, 0x10, 7, 0x00, 0x00 } };
     ArchiveOpenCallback *openCallbackSpec = new ArchiveOpenCallback;
     CMyComPtr<IArchiveOpenCallback> openCallback(openCallbackSpec);
@@ -25,16 +45,11 @@ bool Q7zDecode::extract(const QString &archiveName, const QString &outputPath)
                                                                              bind(&Q7zDecode::fileContent, this, placeholders::_1, placeholders::_2),
                                                                              bind(&Q7zDecode::decodeInfo, this, placeholders::_1, placeholders::_2));
     CMyComPtr<IArchiveExtractCallback> extractCallback(extractCallbackSpec);
-    ArchiveInStream *fileSpec = new ArchiveInStream;
     CMyComPtr<IInStream> file(fileSpec);
     CMyComPtr<IInArchive> archive;
     const UInt64 scanSize = 1 << 23;
 
     if(CreateObject(&CLSIDFormat, &IID_IInArchive, reinterpret_cast<void**>(&archive)) != S_OK)
-    {
-        return false;
-    }
-    if(!fileSpec->open(archiveName))
     {
         return false;
     }
@@ -58,20 +73,34 @@ bool Q7zDecode::extract(const QString &archiveName, const QString &outputPath)
 
 bool Q7zDecode::list(const QString &archiveName, FileInfoList *fileList)
 {
+    ArchiveFileInStream *fileSpec = new ArchiveFileInStream;
+
+    if(!fileSpec->open(archiveName))
+    {
+        return false;
+    }
+
+    return list(fileSpec, fileList);
+}
+
+bool Q7zDecode::list(const QByteArray &archiveData, FileInfoList *fileList)
+{
+    ArchiveMemoryInStream *fileSpec = new ArchiveMemoryInStream;
+    fileSpec->setData(const_cast<QByteArray*>(&archiveData));
+    return list(fileSpec, fileList);
+}
+
+bool Q7zDecode::list(IInStream *fileSpec, FileInfoList *fileList)
+{
     const GUID CLSIDFormat = { 0x23170F69, 0x40C1, 0x278A, { 0x10, 0x00, 0x00, 0x01, 0x10, 7, 0x00, 0x00 } };
     ArchiveOpenCallback *openCallbackSpec = new ArchiveOpenCallback;
     CMyComPtr<IArchiveOpenCallback> openCallback(openCallbackSpec);
-    CInFileStream *fileSpec = new CInFileStream;
     CMyComPtr<IInStream> file(fileSpec);
     CMyComPtr<IInArchive> archive;
     const UInt64 scanSize = 1 << 23;
     UInt32 itemsCount = 0;
 
     if(CreateObject(&CLSIDFormat, &IID_IInArchive, reinterpret_cast<void**>(&archive)) != S_OK)
-    {
-        return false;
-    }
-    if(!fileSpec->Open(us2fs(archiveName.toStdWString().c_str())))
     {
         return false;
     }

@@ -1,17 +1,17 @@
-#include "ArchiveOutStream.h"
+#include "ArchiveFileOutStream.h"
 
-bool ArchiveOutStream::create(const QString &fileName)
+bool ArchiveFileOutStream::create(const QString &fileName)
 {
     m_file.setFileName(fileName);
     return m_file.open(QIODeviceBase::WriteOnly | QIODeviceBase::Truncate);
 }
 
-void ArchiveOutStream::close()
+void ArchiveFileOutStream::close()
 {
     m_file.close();
 }
 
-Z7_COM7F_IMF(ArchiveOutStream::Write(const void *data, UInt32 size, UInt32 *processedSize))
+Z7_COM7F_IMF(ArchiveFileOutStream::Write(const void *data, UInt32 size, UInt32 *processedSize))
 {
     if(!m_file.isOpen()) return E_FAIL;
 
@@ -19,7 +19,7 @@ Z7_COM7F_IMF(ArchiveOutStream::Write(const void *data, UInt32 size, UInt32 *proc
     return S_OK;
 }
 
-Z7_COM7F_IMF(ArchiveOutStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64 *newPosition))
+Z7_COM7F_IMF(ArchiveFileOutStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64 *newPosition))
 {
     qint64 position, size;
 
@@ -52,7 +52,7 @@ Z7_COM7F_IMF(ArchiveOutStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64 *new
     return E_FAIL;
 }
 
-Z7_COM7F_IMF(ArchiveOutStream::SetSize(UInt64 newSize))
+Z7_COM7F_IMF(ArchiveFileOutStream::SetSize(UInt64 newSize))
 {
     return m_file.resize(newSize) ? S_OK : E_FAIL;
 }

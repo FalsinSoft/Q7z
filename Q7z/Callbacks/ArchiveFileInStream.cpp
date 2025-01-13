@@ -1,20 +1,20 @@
-#include "ArchiveInStream.h"
+#include "ArchiveFileInStream.h"
 
-bool ArchiveInStream::open(const QString &fileName)
+bool ArchiveFileInStream::open(const QString &fileName)
 {
     m_file.setFileName(fileName);
     return m_file.open(QIODeviceBase::ReadOnly);
 }
 
-Z7_COM7F_IMF(ArchiveInStream::Read(void *data, UInt32 size, UInt32 *processedSize))
+Z7_COM7F_IMF(ArchiveFileInStream::Read(void *data, UInt32 size, UInt32 *processedSize))
 {
     if(!m_file.isOpen())  return E_FAIL;
 
-    *processedSize = m_file.read(reinterpret_cast<char *>(data), size);
+    *processedSize = m_file.read(reinterpret_cast<char*>(data), size);
     return S_OK;
 }
 
-Z7_COM7F_IMF(ArchiveInStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64 *newPosition))
+Z7_COM7F_IMF(ArchiveFileInStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64 *newPosition))
 {
     qint64 position, size;
 
@@ -47,7 +47,7 @@ Z7_COM7F_IMF(ArchiveInStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64 *newP
     return E_FAIL;
 }
 
-Z7_COM7F_IMF(ArchiveInStream::GetSize(UInt64 *size))
+Z7_COM7F_IMF(ArchiveFileInStream::GetSize(UInt64 *size))
 {
     if(!m_file.isOpen())  return E_FAIL;
 
