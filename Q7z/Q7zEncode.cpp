@@ -82,9 +82,14 @@ bool Q7zEncode::create(IOutStream *fileSpec, const QStringList &files, const QSt
 
 bool Q7zEncode::setOutProperties(IOutArchive *outArchive) const
 {
-    CRecordVector<const wchar_t*> propertyNames;
-    NCOM::CPropVariant propertyValues[4];
     CMyComPtr<ISetProperties> properties;
+    const wchar_t* propertyNames[] = { L"m", L"x", L"d", L"he" };
+    const auto compressionMode = parseCompressionMode(m_compressionMode).toStdWString();
+    const auto mbDictionarySize = QString("%1m").arg(m_mbDictionarySize).toStdWString();
+    const NCOM::CPropVariant propertyValues[] = { const_cast<wchar_t*>(compressionMode.c_str()),
+                                                  static_cast<UInt32>(m_compressionLevel),
+                                                  const_cast<wchar_t*>(mbDictionarySize.c_str()),
+                                                  m_encryptHeaders };
 
     outArchive->QueryInterface(IID_ISetProperties, reinterpret_cast<void**>(&properties));
     if(!properties)
@@ -92,16 +97,7 @@ bool Q7zEncode::setOutProperties(IOutArchive *outArchive) const
         return false;
     }
 
-    propertyNames.Add(L"m");
-    propertyValues[0] = qUtf16Printable(parseCompressionMode(m_compressionMode));
-    propertyNames.Add(L"x");
-    propertyValues[1] = static_cast<UInt32>(m_compressionLevel);
-    propertyNames.Add(L"d");
-    propertyValues[2] = qUtf16Printable(QString("%1m").arg(m_mbDictionarySize));
-    propertyNames.Add(L"he");
-    propertyValues[3] = m_encryptHeaders;
-
-    if(properties->SetProperties(&propertyNames.FrontItem(), propertyValues, 4) != S_OK)
+    if(properties->SetProperties(propertyNames, propertyValues, 4) != S_OK)
     {
         return false;
     }
