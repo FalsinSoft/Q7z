@@ -1,3 +1,4 @@
+#include <QScopedPointer>
 #include "../LZMA/CPP/Common/IntToString.h"
 #include "../LZMA/CPP/Windows/FileDir.h"
 #include "../LZMA/CPP/Windows/FileFind.h"
@@ -155,7 +156,13 @@ Z7_COM7F_IMF(ArchiveExtractCallback::SetOperationResult(Int32 operationResult))
 
 Z7_COM7F_IMF(ArchiveExtractCallback::CryptoGetTextPassword(BSTR *password))
 {
-    return StringToBstr(qUtf16Printable(m_password), password);
+    QScopedPointer<wchar_t, QScopedPointerArrayDeleter<wchar_t>> passwordW;
+
+    passwordW.reset(new wchar_t[m_password.length() + 1]);
+    memset(passwordW.data(), 0, (m_password.length() + 1) * sizeof(wchar_t));
+    m_password.toWCharArray(passwordW.data());
+
+    return StringToBstr(passwordW.data(), password);
 }
 
 Z7_COM7F_IMF(ArchiveExtractCallback::COutDataStream::Write(const void *data, UInt32 size, UInt32 *processedSize))
@@ -350,8 +357,15 @@ UString ArchiveExtractCallback::fullPath(const UString &filePath) const
 {
     if(!m_outputPath.isEmpty())
     {
-        FString outputPath = us2fs(qUtf16Printable(m_outputPath));
+        QScopedPointer<wchar_t, QScopedPointerArrayDeleter<wchar_t>> outputPathW;
+        FString outputPath;
+
+        outputPathW.reset(new wchar_t[m_outputPath.length() + 1]);
+        memset(outputPathW.data(), 0, (m_outputPath.length() + 1) * sizeof(wchar_t));
+        m_outputPath.toWCharArray(outputPathW.data());
+        outputPath = us2fs(outputPathW.data());
         NName::NormalizeDirPathPrefix(outputPath);
+
         return UString(outputPath + us2fs(filePath));
     }
     return filePath;

@@ -1,4 +1,5 @@
 #include <QFileInfo>
+#include <QScopedPointer>
 #include "../LZMA/CPP/Common/IntToString.h"
 #include "ArchiveUpdateCallback.h"
 
@@ -34,8 +35,17 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetUpdateItemInfo(UInt32 index, Int32 *newDa
 
 Z7_COM7F_IMF(ArchiveUpdateCallback::GetProperty(UInt32 index, PROPID propID, PROPVARIANT *value))
 {
+    QScopedPointer<wchar_t, QScopedPointerArrayDeleter<wchar_t>> fileNameW, relativeFileNameW;
     const auto &file = m_fileDataList.at(index);
+    const auto relativeFileName = excludeBasePath(file.name);
     NCOM::CPropVariant property = false;
+
+    fileNameW.reset(new wchar_t[file.name.length() + 1]);
+    memset(fileNameW.data(), 0, (file.name.length() + 1) * sizeof(wchar_t));
+    file.name.toWCharArray(fileNameW.data());
+    relativeFileNameW.reset(new wchar_t[relativeFileName.length() + 1]);
+    memset(relativeFileNameW.data(), 0, (relativeFileName.length() + 1) * sizeof(wchar_t));
+    relativeFileName.toWCharArray(relativeFileNameW.data());
 
     if(file.requestFileData)
     {
@@ -50,11 +60,11 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetProperty(UInt32 index, PROPID propID, PRO
     {
         NFile::NFind::CFileInfo fileInfo;
 
-        fileInfo.Find(us2fs(qUtf16Printable(file.name)));
+        fileInfo.Find(us2fs(fileNameW.data()));
         switch(propID)
         {
             case kpidPath:
-                property = qUtf16Printable(excludeBasePath(file.name));
+                property = relativeFileNameW.data();
                 break;
             case kpidIsDir:
                 property = fileInfo.IsDir();
@@ -78,7 +88,7 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetProperty(UInt32 index, PROPID propID, PRO
         switch(propID)
         {
             case kpidPath:
-                property = qUtf16Printable(excludeBasePath(file.name));
+                property = relativeFileNameW.data();
                 break;
             case kpidSize:
                 property = static_cast<UInt64>(file.data.size());
@@ -108,7 +118,13 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetStream(UInt32 index, ISequentialInStream 
         {
             CInFileStream *inStreamSpec = new CInFileStream;
             CMyComPtr<ISequentialInStream> inStreamLoc(inStreamSpec);
-            if(!inStreamSpec->Open(us2fs(qUtf16Printable(file.name))))
+            QScopedPointer<wchar_t, QScopedPointerArrayDeleter<wchar_t>> fileNameW;
+
+            fileNameW.reset(new wchar_t[file.name.length() + 1]);
+            memset(fileNameW.data(), 0, (file.name.length() + 1) * sizeof(wchar_t));
+            file.name.toWCharArray(fileNameW.data());
+
+            if(!inStreamSpec->Open(us2fs(fileNameW.data())))
             {
                 return S_FALSE;
             }
@@ -142,8 +158,15 @@ Z7_COM7F_IMF(ArchiveUpdateCallback::GetVolumeStream(UInt32 index, ISequentialOut
 
 Z7_COM7F_IMF(ArchiveUpdateCallback::CryptoGetTextPassword2(Int32 *passwordIsDefined, BSTR *password))
 {
+    QScopedPointer<wchar_t, QScopedPointerArrayDeleter<wchar_t>> passwordW;
+
+    passwordW.reset(new wchar_t[m_password.length() + 1]);
+    memset(passwordW.data(), 0, (m_password.length() + 1) * sizeof(wchar_t));
+    m_password.toWCharArray(passwordW.data());
+
     *passwordIsDefined = BoolToInt(!m_password.isEmpty());
-    return StringToBstr(qUtf16Printable(m_password), password);
+
+    return StringToBstr(passwordW.data(), password);
 }
 
 Z7_COM7F_IMF(ArchiveUpdateCallback::CInDataStream::Read(void *data, UInt32 size, UInt32 *processedSize))
