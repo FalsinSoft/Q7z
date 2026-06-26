@@ -860,5 +860,8 @@
     <ClInclude Include="Callbacks\ArchiveMemoryOutStream.h">
       <Filter>Header Files\Callbacks</Filter>
     </ClInclude>
+    <ClInclude Include="LZMA\CPP\Windows\WinDefs.h">
+      <Filter>Header Files\LZMA\CPP\Windows</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

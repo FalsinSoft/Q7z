@@ -199,6 +199,7 @@
     <ClInclude Include="LZMA\CPP\Windows\System.h" />
     <ClInclude Include="LZMA\CPP\Windows\Thread.h" />
     <ClInclude Include="LZMA\CPP\Windows\TimeUtils.h" />
+    <ClInclude Include="LZMA\CPP\Windows\WinDefs.h" />
     <ClInclude Include="LZMA\C\7zCrc.h" />
     <ClInclude Include="LZMA\C\7zTypes.h" />
     <ClInclude Include="LZMA\C\7zVersion.h" />
